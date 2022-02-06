@@ -2,6 +2,8 @@
 import { Alert, StyleSheet, Text, View, TouchableHighlight, Image } from 'react-native';
 import React, {useState} from 'react';
 
+import * as Location from 'expo-location'
+
 import Status from './components/Status';
 import {
   createTextMessage,
@@ -9,6 +11,7 @@ import {
   createLocationMessage
 } from './utils/MessageUtils'
 import MessageList from './components/MessageList';
+import Toolbar from './components/Toolbar';
 
 export default function App() {
   const initialMessages = [
@@ -23,6 +26,48 @@ export default function App() {
 
   const [messages, setMessages] = useState(initialMessages)
   const [fullscreenImageId, setFullscreenImageId] = useState(null)
+  const [isInputFocused, setIsInputFocused] = useState(false)
+
+  const handleChangeFocus = (isFocused) => {
+    setIsInputFocused(isFocused)
+  }
+
+  const handlePressToolbarCamera = () => {
+    //
+  }
+
+  const handlePressToolbarLocation = async () => {
+    try {
+      console.log('checking permission')
+      const {status} = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log(status)
+        return
+      }
+      console.log('permission ok')
+
+      console.log('getting position')
+      const position = await Location.getCurrentPositionAsync()
+
+      const newMessages = [
+        createLocationMessage({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        }),
+        ...messages
+      ]
+  
+      setMessages(newMessages)
+      console.log('messages set')
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const handleSubmit = (text) => {
+    const newMessages = [createTextMessage(text), ...messages]
+    setMessages(newMessages)
+  }
 
   const renderMessageList = () => {
     return (
@@ -58,6 +103,7 @@ export default function App() {
         )
         break
       case 'image':
+        setIsInputFocused(false)
         setFullscreenImageId(id)
         break
       default:
@@ -93,11 +139,21 @@ export default function App() {
       <View style={styles.inputMethodEditor}></View>
     )
   }
+
   const renderToolbar = () => {
     return (
-      <View style={styles.toolbar}></View>
+      <View style={styles.toolbar}>
+        <Toolbar
+          isFocused={isInputFocused}
+          onSubmit={handleSubmit}
+          onChangeFocus={handleChangeFocus}
+          onPressCamera={handlePressToolbarCamera}
+          onPressLocation={handlePressToolbarLocation}
+        />
+      </View>
     )
   }
+
   return (
     <View style={styles.container}>
       <Status />
