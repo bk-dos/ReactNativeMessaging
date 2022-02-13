@@ -12,6 +12,7 @@ import {
 } from './utils/MessageUtils'
 import MessageList from './components/MessageList';
 import Toolbar from './components/Toolbar';
+import ImageGrid from './components/ImageGrid';
 
 export default function App() {
   const initialMessages = [
@@ -136,7 +137,9 @@ export default function App() {
 
   const renderInputMethodEditor = () => {
     return (
-      <View style={styles.inputMethodEditor}></View>
+      <View style={styles.inputMethodEditor}>
+        <ImageGrid />
+      </View>
     )
   }
 
